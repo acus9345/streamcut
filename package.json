@@ -1,0 +1,66 @@
+{
+  "name": "streamcut",
+  "version": "0.1.0",
+  "description": "Split streaming LLM output into sentences or Markdown blocks as soon as each one is complete. For text-to-speech, live translation and chunked rendering. Handles abbreviations, decimals, code fences, lists and CJK. Zero dependencies.",
+  "keywords": [
+    "llm",
+    "stream",
+    "streaming",
+    "sentence",
+    "sentence-splitter",
+    "sentence-tokenizer",
+    "segmenter",
+    "markdown",
+    "chunk",
+    "tts",
+    "text-to-speech",
+    "openai",
+    "anthropic",
+    "claude",
+    "ai-sdk",
+    "transformstream"
+  ],
+  "homepage": "https://github.com/acus9345/streamcut#readme",
+  "bugs": {
+    "url": "https://github.com/acus9345/streamcut/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acus9345/streamcut.git"
+  },
+  "license": "MIT",
+  "author": "acus9345 <acus9345@gmail.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "prelint": "npm run build",
+    "lint": "tsc -p tsconfig.json",
+    "pretest": "npm run build",
+    "test": "node --test \"test/*.test.ts\"",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  }
+}
