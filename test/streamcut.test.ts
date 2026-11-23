@@ -84,6 +84,14 @@ describe("sentence mode", () => {
     ]);
   });
 
+  it("handles headings, hashtags and multi-digit list items regardless of chunking", () => {
+    check("See issue\n#123 for details.", ["See issue\n#123 for details."]);
+    check("Intro\n####notheading", ["Intro\n####notheading"]);
+    check("Intro\n100. item\n1234. next", ["Intro", "100. item", "1234. next"]);
+    check("Intro\n#\nAfter", ["Intro", "#", "After"]);
+    check("Intro\n#\tTabbed heading", ["Intro", "#\tTabbed heading"]);
+  });
+
   it("joins soft-wrapped lines of one sentence", () => {
     check("This sentence is\nwrapped over lines. Next one.", ["This sentence is\nwrapped over lines.", "Next one."]);
   });
@@ -92,6 +100,13 @@ describe("sentence mode", () => {
     const code = "```js\nconst a = 1. b = 2;\n\nconsole.log(a);\n```";
     check(`Run this. ${"\n"}${code}\nIt prints 1. Done.`, ["Run this.", code, "It prints 1.", "Done."]);
     check("Before.\n~~~~\n``` not a close\n~~~~\nAfter.", ["Before.", "~~~~\n``` not a close\n~~~~", "After."]);
+  });
+
+  it("keeps indented fenced code blocks whole after lists and headings", () => {
+    const code = "  ```js\n  const a = 1. b = 2;\n  ```";
+    check(`- Step 1\n${code}\nDone.`, ["- Step 1", code, "Done."]);
+    check(`# Title\n${code}\nDone.`, ["# Title", code, "Done."]);
+    assert.equal(isCodeBlock(code), true);
   });
 
   it("emits an unclosed code block on flush", () => {
@@ -210,6 +225,12 @@ describe("split()", () => {
     const piped: string[] = [];
     for await (const s of stream().pipeThrough(new SplitStream())) piped.push(s);
     assert.deepEqual(piped, out);
+  });
+
+  it("accepts a plain string", async () => {
+    const out: string[] = [];
+    for await (const s of split("Hello. World.")) out.push(s);
+    assert.deepEqual(out, ["Hello.", "World."]);
   });
 });
 

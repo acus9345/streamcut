@@ -34,7 +34,9 @@ const CJK_TERMINATORS = "。！？｡";
 const CLOSERS = "\"')]}”’»」』）】*_`";
 const OPENERS = "([{\"'“‘«「『（【*_`";
 /** Lines that start a new Markdown block (list item, heading, quote, table row). */
-const BLOCK_START = /^ {0,3}(?:[-*+] |\d{1,9}[.)] |#{1,6}(?: |$)|>|\|)/;
+const BLOCK_START = /^ {0,3}(?:[-*+] |\d{1,9}[.)] |#{1,6}(?:[ \t]|$)|>|\|)/;
+/** Partial line prefixes (after leading spaces) that could still become a `BLOCK_START`. */
+const MAY_BE_BLOCK_START = /^(?:[-*+]|\d{1,9}[.)]?|#{1,6})$/;
 
 function isSpace(c: string | undefined): boolean {
   return c !== undefined && (c === " " || c === "\n" || c === "\t" || c === "\r" || /\s/.test(c));
@@ -246,16 +248,21 @@ export class SentenceSegmenter {
           i++;
           continue;
         }
-        const next = buf.slice(k, k + 12);
         const current = buf.slice(this.#start, i).trimStart();
-        if (buf[k] === "\n" || BLOCK_START.test(current) || BLOCK_START.test(next)) {
+        if (buf[k] === "\n" || BLOCK_START.test(current)) {
           this.#emit(buf.slice(this.#start, i));
-          this.#start = i;
-          i = k;
+          this.#start = i = buf[k] === "\n" ? k : i + 1;
           continue scan;
         }
-        // Too little of the next line to tell whether it starts a list item.
-        if (!final && next.length < 4 && !next.includes("\n")) break;
+        const nl = buf.indexOf("\n", k);
+        const next = (nl === -1 ? buf.slice(k, k + 12) : buf.slice(k, Math.min(nl, k + 12))).replace(/\r$/, "");
+        // Too little of the next line to tell whether it starts a heading or list item.
+        if (!final && nl === -1 && MAY_BE_BLOCK_START.test(next)) break;
+        if (BLOCK_START.test(next)) {
+          this.#emit(buf.slice(this.#start, i));
+          this.#start = i = i + 1;
+          continue scan;
+        }
       }
 
       i++;

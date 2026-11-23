@@ -41,6 +41,10 @@ export type TextSource =
   | ReadableStream<string | Uint8Array>;
 
 async function* chunks(source: TextSource): AsyncGenerator<string | Uint8Array> {
+  if (typeof source === "string") {
+    yield source;
+    return;
+  }
   if (Symbol.asyncIterator in source || Symbol.iterator in source) {
     yield* source as AsyncIterable<string | Uint8Array>;
     return;
